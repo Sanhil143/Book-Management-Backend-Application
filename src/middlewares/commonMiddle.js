@@ -10,7 +10,7 @@ const authentication = async function (req, res, next) {
         .status(400)
         .send({ status: false, message: "Token is missing" });
     }
-    decodedToken = jwt.verify(token, "Group16", (err, decode) => {
+    decodedToken = jwt.verify(token, process.env.SECUKEY, (err, decode) => {
       if (err) {
         return res
           .status(400)

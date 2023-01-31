@@ -2,8 +2,10 @@ const express = require('express')
 const router = express.Router()
 const {authentication} = require("../middlewares/commonMiddle")
 const {loginUser,createUser} = require("../controllers/userController")
-const {createBooks, getBook, updateBook, deleteBook,getBookById} = require("../controllers/bookController")
+const {createBooks, getBook, updateBook, deleteBook,getBookById,} = require("../controllers/bookController")
 const {createReview,deleteReview,reviewUpdate }= require("../controllers/reviewController")
+const { uploadedFile } = require('../aws/aws.connec')
+
 
 //user
 router.post("/register", createUser)
@@ -21,10 +23,16 @@ router.post("/books/:bookId/review", createReview )
 router.put("/books/:bookId/review/:reviewId",reviewUpdate)
 router.delete("/books/:bookId/review/:reviewId",deleteReview) 
 
+//uplaod files on aws
+router.post("/upload-file-aws", uploadedFile)
+
 
 
 router.all("/*", (req, res) => {
       res.status(400).send({ status: false, message: "This page does not exist, please check your url" })
 })
 
-module.exports = router
+module.exports = router 
+
+
+

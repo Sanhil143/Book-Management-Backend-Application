@@ -6,7 +6,8 @@ const bookSchema = new mongoose.Schema({
             type:String,
             required:true,  // evil return 1920 \\ 1920446465
             unique:true,
-            trim:true
+            trim:true,
+            
       },
       excerpt:{
             type:String,
@@ -47,6 +48,7 @@ const bookSchema = new mongoose.Schema({
             type:Date,
             required:true
       },
+      bookCover:String,
 
 },{timestamps:true})
 

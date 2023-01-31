@@ -8,55 +8,56 @@ const createUser = async function (req, res) {
     let userData = req.body
 
     const { title, name, phone, email, password, address } = req.body
-    
-      if (!title) {
-        return res.status(400).send({ status: false, message: "title is required" })
-      }
-      if (!(["Mr", "Mrs", "Miss"].includes(title))) {
-        return res.status(400).send({ status: false, message: "Can only use Mr, Mrs and Miss" })
-      }
-    
 
-    
-      if (!name) {
-        return res.status(400).send({ status: false, message: "name is required" })
-      }
-      if (!isValidName(name) || !isValid(name)) {
-        return res.status(400).send({ status: false, message: "Please enter valid name" })
-      }
+    if (!title) {
+      return res.status(400).send({ status: false, message: "title is required" })
+    }
+    if (!(["Mr", "Mrs", "Miss"].includes(title))) {
+      return res.status(400).send({ status: false, message: "Can only use Mr, Mrs and Miss" })
+    }
 
-      if (!phone) {
-        return res.status(400).send({ status: false, message: "phone is required" })
-      }
-      if (!isValidMobileNo(phone)) {
-        return res.status(400).send({ status: false, message: "Phone Number is not Valid" })
-      }
 
-      let checkPhone = await UserModel.findOne({ phone: phone })
-      if (checkPhone) {
-        return res.status(400).send({ status: false, message: "phone no. is already exist" })  
-      }
-        
-      if (!email) {
-        return res.status(400).send({ status: false, message: "email is required" })
-      }
-      if (!isValidEmail(email)) {
-        return res.status(400).send({ status: false, message: "Invalid Email" })
-      }
-      let checkEmail = await UserModel.findOne({ email: email })
-      if (checkEmail) {
-        return res.status(400).send({ status: false, message: "email is already exist" })
-      }
-      if (!password) {
-        return res.status(400).send({ status: false, message: "password is required" })
-      }
-      if (!isValidPassword(password)) {
-        return res.status(400).send({ status: false, message: "Password requirements didn't match" })
-      }
-   
 
-    if (!isValidPincode(address.pincode)) {
-      return res.status(400).send({ status: false, message: "Pincode requirements didn't match" })
+    if (!name) {
+      return res.status(400).send({ status: false, message: "name is required" })
+    }
+    if (!isValidName(name) || !isValid(name)) {
+      return res.status(400).send({ status: false, message: "Please enter valid name" })
+    }
+
+    if (!phone) {
+      return res.status(400).send({ status: false, message: "phone is required" })
+    }
+    if (!isValidMobileNo(phone)) {
+      return res.status(400).send({ status: false, message: "Phone Number is not Valid" })
+    }
+
+    let checkPhone = await UserModel.findOne({ phone: phone })
+    if (checkPhone) {
+      return res.status(400).send({ status: false, message: "phone no. is already exist" })
+    }
+
+    if (!email) {
+      return res.status(400).send({ status: false, message: "email is required" })
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).send({ status: false, message: "Invalid Email" })
+    }
+    let checkEmail = await UserModel.findOne({ email: email })
+    if (checkEmail) {
+      return res.status(400).send({ status: false, message: "email is already exist" })
+    }
+    if (!password) {
+      return res.status(400).send({ status: false, message: "password is required" })
+    }
+    if (!isValidPassword(password)) {
+      return res.status(400).send({ status: false, message: "Password requirements didn't match" })
+    }
+
+    if (pincode) {
+      if (!isValidPincode(address.pincode)) {
+        return res.status(400).send({ status: false, message: "Pincode requirements didn't match" })
+      }
     }
 
     let savedData = await UserModel.create(userData)
@@ -92,18 +93,17 @@ const loginUser = async function (req, res) {
 
     let verifyUser = await UserModel.findOne({ email: email, password: password });
     if (!verifyUser)
-      return res.status(400).send({ status: false, message: "Invalid Login Credential" });
+      return res.status(400).send({ status: false, message: "Invalid Login Credential" });   
 
-    let payload = { userId: verifyUser._id, iat: Date.now(), };
+    const userToken = jwt.sign({ userId: verifyUser._id }, process.env.SECUKEY, { expiresIn: 30000 })
 
-    let token = jwt.sign(payload, "Group16", { expiresIn: "60s" });
-    let decodedToken = jwt.verify(token, "Group16");
-    let UserID = decodedToken.userId;
-    let IAT = decodedToken.iat;
-    let ExpiresIn = decodedToken.exp
+    const userTokenData = jwt.decode(userToken)
+    userTokenData.iat = new Date(userTokenData.iat*1000).toGMTString()
+    userTokenData.exp = new Date(userTokenData.exp*1000).toGMTString()
 
-    res.setHeader("x-api-key", token);
-    res.status(200).send({ status: true, message: "login successful", data: token, UserID, IAT, ExpiresIn });
+    return res.status(200).send({status: true,message: 'Success',data: {userToken: userToken,...userTokenData
+        }
+    })
   } catch (error) {
     res.status(500).send({ status: false, message: error.message });
   }
@@ -114,3 +114,12 @@ module.exports = { loginUser, createUser }
 
 
 
+// const userToken = jwt.sign({ userId: isUserExist._id }, 'secretKey', { expiresIn: 30000 })
+
+//     const userTokenData = jwt.decode(userToken)
+//     userTokenData.iat = new Date(userTokenData.iat*1000).toGMTString()
+//     userTokenData.exp = new Date(userTokenData.exp*1000).toGMTString()
+
+//     return res.status(200).send({status: true,message: 'Success',data: {userToken: userToken,...userTokenData
+//         }
+//     })
